@@ -1,0 +1,6 @@
+{
+	"user": "username",
+	"pass": "password",
+	"twofa": "2facode",
+	"token": "discord_token"
+}
