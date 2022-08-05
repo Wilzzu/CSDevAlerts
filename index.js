@@ -1,4 +1,4 @@
-const SteamUser = require("steam-user"); // Replace this with `require('steam-user');` if used outside of the module directory
+const SteamUser = require("steam-user");
 const config = require("./config.json");
 const valveids = require("./allids.json");
 var client = new SteamUser();
@@ -128,7 +128,7 @@ const createEmbed = async (info, mapChanged) => {
 		.setDescription(desc)
 		.setThumbnail("https://i.imgur.com/tVO9yYh.png")
 		.setTimestamp()
-		.setFooter({ text: "Grabbed by CsDevAlerts", iconURL: "https://i.imgur.com/tVO9yYh.png" });
+		.setFooter({ text: "Grabbed by CSDevAlerts", iconURL: "https://i.imgur.com/tVO9yYh.png" });
 
 	if (info.map)
 		alertEmbed.addFields({
