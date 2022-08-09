@@ -1,6 +1,7 @@
 const SteamUser = require("steam-user");
 const config = require("./config.json");
 const valveids = require("./allids.json");
+const randomids = require("./randoms.json");
 var client = new SteamUser();
 
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
@@ -57,7 +58,11 @@ const getRichPresence = (appID, iteration) => {
 							server: response.users[key].richPresence["game:server"],
 						};
 						console.log("FOUND");
-						foundUsers.push(user);
+
+						if (randomids.includes(user.id) && appID[iteration] == 730) {
+							console.log("Found user but they aren't in dev branch");
+						} else foundUsers.push(user);
+
 						if (key == Object.keys(response.users)[Object.keys(response.users).length - 1]) {
 							getRichPresence(appID, iteration + 1);
 						}
