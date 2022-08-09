@@ -59,7 +59,7 @@ const getRichPresence = (appID, iteration) => {
 						};
 						console.log("FOUND");
 
-						if (randomids.includes(user.id) && appID[iteration] == 730) {
+						if (randomids.all.includes(user.id) && appID[iteration] == 730) {
 							console.log("Found user but they aren't in dev branch");
 						} else foundUsers.push(user);
 
