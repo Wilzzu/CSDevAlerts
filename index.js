@@ -1,4 +1,5 @@
 const SteamUser = require("steam-user");
+const CronJob = require("cron").CronJob;
 const config = require("./config.json");
 const valveids = require("./allids.json");
 const randomids = require("./randoms.json");
@@ -26,16 +27,23 @@ if (config.twofa) {
 
 let foundUsers = [];
 let prevFoundByID = [];
+let gameName = ["CS:GO Public", "CS:GO Dev"];
 
 client.on("loggedOn", function (details) {
 	console.log("Logged into Steam as " + client.steamID.getSteam3RenderedID());
 	client.setPersona(SteamUser.EPersonaState.Online);
 	getRichPresence([730, 710], 0);
 
-	setInterval(() => {
-		foundUsers = [];
-		getRichPresence([730, 710], 0);
-	}, 1000 * 60);
+	var job = new CronJob(
+		"* * * * *",
+		function () {
+			foundUsers = [];
+			getRichPresence([730, 710], 0);
+		},
+		null,
+		true,
+		"America/Los_Angeles"
+	);
 });
 
 const getRichPresence = (appID, iteration) => {
@@ -47,6 +55,7 @@ const getRichPresence = (appID, iteration) => {
 					for (let key in response.users) {
 						let user = {
 							id: key,
+							game: gameName[iteration],
 							statusLocalized: response.users[key].localizedString,
 							status: response.users[key].richPresence.status,
 							state: response.users[key].richPresence["game:state"],
@@ -122,13 +131,12 @@ const createEmbed = async (info, mapChanged) => {
 	let title = "SOMETHING NEW HAPPENED!";
 	if (mapChanged) title = "CS DEV CHANGED MAP!";
 	else title = "CS DEV STARTED PLAYING!";
-	desc = `***General info:***\n👨‍🔬 **ID:** ||${info.id}||\nℹ **Info:** ${
+	desc = `***General info:***\n👨‍🔬 **ID:** ||${info.id}||\n🕹 **Game:** ${info.game}\nℹ **Info:** ${
 		info.status
-	}\n🕹 **Status:** ${info.statusLocalized}\n⭕ **State**: ${
+	}\n⏺ **Status:** ${info.statusLocalized}\n⭕ **State**: ${
 		info.state.charAt(0).toUpperCase() + info.state.slice(1)
 	}\n\n***In-depth info:***`;
 	let alertEmbed = new EmbedBuilder()
-		.setColor("#7EFA02")
 		.setTitle(title)
 		.setDescription(desc)
 		.setThumbnail("https://i.imgur.com/tVO9yYh.png")
@@ -154,7 +162,10 @@ const createEmbed = async (info, mapChanged) => {
 			value: info.mode.charAt(0).toUpperCase() + info.mode.slice(1),
 			inline: true,
 		});
-	if (info.app) alertEmbed.addFields({ name: "🎮 App:", value: info.app.toString(), inline: true });
+	if (info.app) {
+		alertEmbed.addFields({ name: "🎮 App:", value: info.app.toString(), inline: true });
+		info.app == 710 ? alertEmbed.setColor("#7EFA02") : alertEmbed.setColor("#808080");
+	}
 	if (info.version)
 		alertEmbed.addFields({ name: "📦 Version:", value: info.version, inline: true });
 	if (info.server)
