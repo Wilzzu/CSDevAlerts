@@ -28,10 +28,16 @@ if (config.twofa) {
 let foundUsers = [];
 let prevFoundByID = [];
 let gameName = ["CS:GO Public", "CS:GO Dev"];
+let running = false;
 
 client.on("loggedOn", function (details) {
 	console.log("Logged into Steam as " + client.steamID.getSteam3RenderedID());
 	client.setPersona(SteamUser.EPersonaState.Online);
+	if (!running) start();
+});
+
+let start = () => {
+	running = true;
 	getRichPresence([730, 710], 0);
 
 	var job = new CronJob(
@@ -44,7 +50,7 @@ client.on("loggedOn", function (details) {
 		true,
 		"America/Los_Angeles"
 	);
-});
+};
 
 const getRichPresence = (appID, iteration) => {
 	if (iteration == appID.length) forwardInfo(foundUsers);
@@ -79,10 +85,14 @@ const getRichPresence = (appID, iteration) => {
 				} else getRichPresence(appID, iteration + 1);
 			} else {
 				console.log(err);
-				getRichPresence(appID, iteration + 1);
+				sendErr(err);
 			}
 		});
 	}
+};
+
+const sendErr = async (error) => {
+	await bot.channels.cache.get("924300455851458562").send(JSON.stringify(error));
 };
 
 const forwardInfo = (userInfos) => {
