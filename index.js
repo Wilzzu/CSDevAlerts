@@ -3,6 +3,8 @@ const CronJob = require("cron").CronJob;
 const config = require("./config.json");
 let servers = require("./servers.json");
 const valveids = require("./allids.json");
+const adjList = require("./adjectives.json");
+const nounList = require("./nouns.json");
 //ACTUALLY DEVS, NOT RANDOMS
 const randomids = require("./randoms.json");
 const fs = require("fs");
@@ -145,25 +147,27 @@ const sendAlert = async (info, mapChanged) => {
 			bot.guilds.cache.forEach((guild) => {
 				// Find settings
 				let settings = servers.find((setting) => setting.id == guild.id);
-				if (settings.stop) return;
-				if (
-					(settings.who == "devBranch" && e.who == "devBranch") ||
-					(settings.who == "devAll" && (e.who == "devAll" || e.who == "devBranch")) ||
-					settings.who == "all"
-				) {
-					if (settings.channel == "No channel selected") {
-						let channel = guild.channels.cache.find((ch) => ch.type === 0); // Send to first text channel available
-						channel.send({ embeds: [alertEmbed] });
-					} else {
-						if (guild.id == "924300455151034429") {
-							bot.channels.cache
-								.get(settings.channel)
-								.send({ content: e.id, embeds: [alertEmbed] });
+				if (settings) {
+					if (settings.stop) return;
+					if (
+						(settings.who == "devBranch" && e.who == "devBranch") ||
+						(settings.who == "devAll" && (e.who == "devAll" || e.who == "devBranch")) ||
+						settings.who == "all"
+					) {
+						if (settings.channel == "No channel selected") {
+							let channel = guild.channels.cache.find((ch) => ch.type === 0); // Send to first text channel available
+							channel.send({ embeds: [alertEmbed] });
 						} else {
-							bot.channels.cache.get(settings.channel).send({ embeds: [alertEmbed] });
+							if (guild.id == "924300455151034429") {
+								bot.channels.cache
+									.get(settings.channel)
+									.send({ content: e.id, embeds: [alertEmbed] });
+							} else {
+								bot.channels.cache.get(settings.channel).send({ embeds: [alertEmbed] });
+							}
 						}
 					}
-				}
+				} else console.log("Could not find settings for channel: " + guild.id);
 			});
 		} catch (err) {
 			console.log("Could not send message to guild");
@@ -173,14 +177,35 @@ const sendAlert = async (info, mapChanged) => {
 	});
 };
 
+const randomName = (id) => {
+	let adj = id.substring(7).substring(0, 5);
+	if (adj.substring(0, 1) == "0") adj = "3" + adj.substring(1, 5);
+	let noun = id.substring(7).substring(5, 10);
+	if (noun.substring(0, 1) == "0") noun = "3" + noun.substring(1, 5);
+
+	return (
+		capitalLetter(adjList[randomizeId(adj)]) + "_" + capitalLetter(nounList[randomizeId(noun)])
+	);
+};
+
+const capitalLetter = (str) => {
+	return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const randomizeId = (id) => {
+	var r = Math.PI * (id ^ 12);
+	return Math.floor((r - Math.floor(r)) * 10000);
+};
+
 const createEmbed = async (info, mapChanged) => {
 	console.log(info);
 	let title = "SOMETHING NEW HAPPENED!";
 	if (mapChanged) title = info.dev + " CHANGED MAP/MAPGROUP!";
 	else title = info.dev + " STARTED PLAYING!";
 	let desc = `***General info:***\n`;
+
 	//${info.id}
-	if (info.id) desc = desc + `👨‍🔬 **ID:** ||⬛⬛⬛⬛⬛⬛⬛⬛||\n`;
+	if (info.id) desc = desc + `👨‍🔬 **ID: ${randomName(info.id)}**\n`;
 	if (info.game) desc = desc + `🕹 **Game:** ${info.game}\n`;
 	if (info.status) desc = desc + `ℹ **Info:** ${info.status}\n`;
 	if (info.statusLocalized) desc = desc + `⏺ **Status:** ${info.statusLocalized}\n`;
