@@ -2,7 +2,7 @@ const SteamUser = require("steam-user");
 const CronJob = require("cron").CronJob;
 const config = require("./config.json");
 let servers = require("./servers.json");
-const valveids = require("./allids.json");
+let valveids = require("./allids.json");
 const adjList = require("./adjectives.json");
 const nounList = require("./nouns.json");
 //ACTUALLY DEVS, NOT RANDOMS
@@ -326,6 +326,18 @@ bot.on("interactionCreate", async (interaction) => {
 			res = "from all Valve employees on any branch!";
 		}
 		await interaction.reply("You will now receive alerts " + res);
+	} else if (commandName === "update") {
+		let msg = "Updated!";
+		try {
+			read = fs.readFileSync("./allids.json");
+			valveids = JSON.parse(read);
+			console.log(valveids);
+			msg = "Updated JSONs!";
+		} catch (err) {
+			msg = "Error while updating JSONs :(";
+			console.error(err);
+		}
+		await interaction.reply(msg);
 	}
 });
 
