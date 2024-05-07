@@ -1,7 +1,7 @@
 node_modules
 allids.json
-config.json
 getSteamIDs.js
 randoms.json
 deploy-commands.js
 servers.json
+.env

@@ -1,14 +1,13 @@
 const SteamUser = require("steam-user");
 const CronJob = require("cron").CronJob;
-const config = require("./config.json");
-let servers = require("./servers.json");
-let valveids = require("./allids.json");
-const adjList = require("./adjectives.json");
-const nounList = require("./nouns.json");
-//ACTUALLY DEVS, NOT RANDOMS
-const randomids = require("./randoms.json");
+let servers = require("./configs/servers.json");
+let valveids = require("./configs/allids.json");
+const adjList = require("./configs/adjectives.json");
+const nounList = require("./configs/nouns.json");
+const randomids = require("./configs/randoms.json");
 const fs = require("fs");
 var client = new SteamUser();
+require("dotenv").config();
 
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const bot = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -18,18 +17,10 @@ bot.once("ready", () => {
 	bot.user.setPresence({ activities: [{ name: "/help for all commands" }] });
 });
 
-if (config.twofa) {
-	client.logOn({
-		accountName: config.user,
-		password: config.pass,
-		twoFactorCode: config.twofa,
-	});
-} else {
-	client.logOn({
-		accountName: config.user,
-		password: config.pass,
-	});
-}
+client.logOn({
+	accountName: process.env.STEAM_USERNAME,
+	password: process.env.STEAM_PASSWORD,
+});
 
 let foundUsers = [];
 let prevFoundByID = [];
@@ -105,14 +96,9 @@ const getRichPresence = (appID, iteration) => {
 				} else getRichPresence(appID, iteration + 1);
 			} else {
 				console.log(err);
-				sendErr(err);
 			}
 		});
 	}
-};
-
-const sendErr = async (error) => {
-	await bot.channels.cache.get("924300455851458562").send(JSON.stringify(error));
 };
 
 const forwardInfo = (userInfos) => {
@@ -123,19 +109,15 @@ const forwardInfo = (userInfos) => {
 				let prevInfo = prevFoundByID.find((prev) => prev.id === user.id);
 				if (prevInfo && prevInfo.id === user.id) {
 					if (prevInfo.map == user.map && prevInfo.group == user.group) {
-						console.log("SAME MAP", user.map, user.group);
 					} else {
-						console.log("DIFFERENT MAP", user.map, user.group);
 						newInfo.push(user);
 					}
 				}
 			});
 			if (newInfo.length > 0) sendAlert(newInfo, true);
 		} else sendAlert(userInfos);
-		console.log("FOUND " + userInfos.length + " DEVELOPER ACCOUNT(S) PLAYING CS");
 		prevFoundByID = userInfos;
 	} else {
-		console.log("NO USERS FOUND");
 		prevFoundByID = [];
 	}
 };
@@ -158,7 +140,7 @@ const sendAlert = async (info, mapChanged) => {
 							let channel = guild.channels.cache.find((ch) => ch.type === 0); // Send to first text channel available
 							channel.send({ embeds: [alertEmbed] });
 						} else {
-							if (guild.id == "924300455151034429") {
+							if (guild.id == process.env.DISCORD_PRIVATE_GUILD_ID) {
 								bot.channels.cache
 									.get(settings.channel)
 									.send({ content: e.id, embeds: [alertEmbed] });
@@ -171,9 +153,7 @@ const sendAlert = async (info, mapChanged) => {
 			});
 		} catch (err) {
 			console.log("Could not send message to guild");
-			console.log(err);
 		}
-		//await bot.channels.cache.get("924300455851458562").send({ embeds: [alertEmbed] });
 	});
 };
 
@@ -198,14 +178,13 @@ const randomizeId = (id) => {
 };
 
 const createEmbed = async (info, mapChanged) => {
-	console.log(info);
 	let title = "SOMETHING NEW HAPPENED!";
 	if (mapChanged) title = info.dev + " CHANGED MAP/MAPGROUP!";
 	else title = info.dev + " STARTED PLAYING!";
 	let desc = `***General info:***\n`;
 
 	//${info.id}
-	if (info.id) desc = desc + `👨‍🔬 **ID: ${randomName(info.id)}**\n`;
+	if (info.id) desc = desc + `👨‍🔬 **Fake ID: ${randomName(info.id)}**\n`;
 	if (info.game) desc = desc + `🕹 **Game:** ${info.game}\n`;
 	if (info.status) desc = desc + `ℹ **Info:** ${info.status}\n`;
 	if (info.statusLocalized) desc = desc + `⏺ **Status:** ${info.statusLocalized}\n`;
@@ -218,6 +197,7 @@ const createEmbed = async (info, mapChanged) => {
 		.setDescription(desc)
 		.setThumbnail("https://i.imgur.com/tVO9yYh.png")
 		.setTimestamp()
+		//Get time in ValveHQ
 		.setFooter({ text: "Grabbed by CSDevAlerts", iconURL: "https://i.imgur.com/tVO9yYh.png" });
 
 	if (info.map)
@@ -256,7 +236,6 @@ const createEmbed = async (info, mapChanged) => {
 		name: "\u200B",
 		value: "```ansi\n[2;34mMade with 💙 by @Wilzzu[0m\n```",
 	});
-	//[@Wilzzu](https://twitter.com/Wilzzu
 	return alertEmbed;
 };
 
@@ -276,21 +255,21 @@ bot.on("interactionCreate", async (interaction) => {
 	else if (commandName === "here") {
 		let index = servers.findIndex((e) => e.id == interaction.guildId);
 		servers[index].channel = interaction.channelId;
-		fs.writeFileSync("./servers.json", JSON.stringify(servers, null, 2));
+		fs.writeFileSync("./configs/servers.json", JSON.stringify(servers, null, 2));
 		await interaction.reply("Alert channel set! You will now receive alerts here!");
 	}
 	//
 	else if (commandName === "stop") {
 		let index = servers.findIndex((e) => e.id == interaction.guildId);
 		servers[index].stop = true;
-		fs.writeFileSync("./servers.json", JSON.stringify(servers, null, 2));
+		fs.writeFileSync("./configs/servers.json", JSON.stringify(servers, null, 2));
 		await interaction.reply("You wont receive alerts anymore!");
 	}
 	//
 	else if (commandName === "continue") {
 		let index = servers.findIndex((e) => e.id == interaction.guildId);
 		servers[index].stop = false;
-		fs.writeFileSync("./servers.json", JSON.stringify(servers, null, 2));
+		fs.writeFileSync("./configs/servers.json", JSON.stringify(servers, null, 2));
 		await interaction.reply("You will receive alerts again!");
 	}
 	//
@@ -298,7 +277,7 @@ bot.on("interactionCreate", async (interaction) => {
 		let helpEmbed = new EmbedBuilder()
 			.setTitle("Commands for CSDevAlerts!")
 			.setDescription(
-				"📨 **/here** - Type this command in the channel you want to receive alerts at!\n👨‍🔬 **/who** - Select who should trigger an alert!\n❌ **/stop** - Stop receiving alerts!\n✅ **/continue** - Continue receiving alerts again!\n🖥 **/status** - Check if CSDevAlerts is running!\nℹ **/help** - Show all commands for CSDevAlerts!"
+				"📨 **/here** - Type this command in the channel you want to receive alerts at.\n👨‍🔬 **/who** - Select who should trigger an alert.\n❌ **/stop** - Stop receiving alerts.\n✅ **/continue** - Continue receiving alerts again.\n🖥 **/status** - Check if CSDevAlerts is running.\nℹ **/help** - Show all commands for CSDevAlerts."
 			)
 			.setThumbnail("https://i.imgur.com/tVO9yYh.png");
 		await interaction.reply({ embeds: [helpEmbed] });
@@ -310,19 +289,19 @@ bot.on("interactionCreate", async (interaction) => {
 		if (choice == "who_devAll") {
 			let index = servers.findIndex((e) => e.id == interaction.guildId);
 			servers[index].who = "devAll";
-			fs.writeFileSync("./servers.json", JSON.stringify(servers, null, 2));
+			fs.writeFileSync("./configs/servers.json", JSON.stringify(servers, null, 2));
 			res = "from CS devs on public and dev branches [730 + 710]!";
 		}
 		if (choice == "who_devBranch") {
 			let index = servers.findIndex((e) => e.id == interaction.guildId);
 			servers[index].who = "devBranch";
-			fs.writeFileSync("./servers.json", JSON.stringify(servers, null, 2));
+			fs.writeFileSync("./configs/servers.json", JSON.stringify(servers, null, 2));
 			res = "only from dev branch [710]!";
 		}
 		if (choice == "who_all") {
 			let index = servers.findIndex((e) => e.id == interaction.guildId);
 			servers[index].who = "all";
-			fs.writeFileSync("./servers.json", JSON.stringify(servers, null, 2));
+			fs.writeFileSync("./configs/servers.json", JSON.stringify(servers, null, 2));
 			res = "from all Valve employees on any branch!";
 		}
 		await interaction.reply("You will now receive alerts " + res);
@@ -331,21 +310,44 @@ bot.on("interactionCreate", async (interaction) => {
 		try {
 			read = fs.readFileSync("./allids.json");
 			valveids = JSON.parse(read);
-			console.log(valveids);
 			msg = "Updated JSONs!";
 		} catch (err) {
 			msg = "Error while updating JSONs :(";
 			console.error(err);
 		}
 		await interaction.reply(msg);
+	} else if (commandName === "sendUpdate") {
+		let updateEmbed = new EmbedBuilder()
+			.setTitle("CSDevAlerts has been updated!")
+			.setDescription(`✅ Insert your update message here`)
+			.setThumbnail("https://i.imgur.com/tVO9yYh.png")
+			.setTimestamp()
+			.setFooter({ text: "CSDevAlerts", iconURL: "https://i.imgur.com/tVO9yYh.png" });
+		try {
+			bot.guilds.cache.forEach((guild) => {
+				// Find settings
+				let settings = servers.find((setting) => setting.id == guild.id);
+				if (settings) {
+					if (settings.stop) return;
+
+					if (settings.channel == "No channel selected") {
+						let channel = guild.channels.cache.find((ch) => ch.type === 0); // Send to first text channel available
+						channel.send({ embeds: [updateEmbed] });
+					} else {
+						bot.channels.cache.get(settings.channel).send({ embeds: [updateEmbed] });
+					}
+				} else console.log("Could not find settings for channel: " + guild.id);
+			});
+		} catch (err) {
+			console.log("Could not send message to guild");
+		}
+		await interaction.reply("Sent update to all channels");
 	}
 });
 
 bot.on("guildCreate", (guild) => {
-	console.log("ADDED TO GUILD");
 	if (servers.find((e) => e.id == guild.id)) return;
 	else {
-		console.log("NEW GUILD");
 		let temp = servers;
 		let addGuild = {
 			id: guild.id,
@@ -354,9 +356,13 @@ bot.on("guildCreate", (guild) => {
 			who: "devAll",
 		};
 		temp.push(addGuild);
-		fs.writeFileSync("./servers.json", JSON.stringify(temp, null, 2));
+		fs.writeFileSync("./configs/servers.json", JSON.stringify(temp, null, 2));
 	}
-	//guild.systemChannel.send(`yo`);
 });
 
-bot.login(config.token);
+bot.on("guildDelete", (guild) => {
+	let temp = servers.filter((e) => e.id !== guild.id);
+	fs.writeFileSync("./configs/servers.json", JSON.stringify(temp, null, 2));
+});
+
+bot.login(process.env.DISCORD_TOKEN);
