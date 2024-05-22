@@ -1,4 +1,24 @@
 {
+	"name": "csdevalerts",
+	"description": "Discord bot that sends a notification whenever a developer starts playing CS:GO",
+	"version": "1.0.0",
+	"main": "index.js",
+	"devDependencies": {},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js",
+		"deploy-commands": "node deploy-commands.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Wilzzu/CsDevAlerts.git"
+	},
+	"author": "Wilzzu",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Wilzzu/CsDevAlerts/issues"
+	},
+	"homepage": "https://github.com/Wilzzu/CsDevAlerts#readme",
 	"dependencies": {
 		"@discordjs/rest": "^1.0.1",
 		"cron": "^2.1.0",

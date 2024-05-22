@@ -4,7 +4,7 @@ let servers = require("./configs/servers.json");
 let valveids = require("./configs/allids.json");
 const adjList = require("./configs/adjectives.json");
 const nounList = require("./configs/nouns.json");
-const randomids = require("./configs/randoms.json");
+const csdevs = require("./configs/csdevs.json");
 const fs = require("fs");
 var client = new SteamUser();
 require("dotenv").config();
@@ -77,7 +77,7 @@ const getRichPresence = (appID, iteration) => {
 							foundUsers.push(user);
 						}
 						//DEV ALL
-						else if (randomids.all.includes(user.id)) {
+						else if (csdevs.all.includes(user.id)) {
 							user.dev = "CS DEV";
 							user.who = "devAll";
 							foundUsers.push(user);
