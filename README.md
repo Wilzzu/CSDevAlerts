@@ -9,12 +9,13 @@
 
 ## Features
 
-- Sends a notification when a Valve developer starts CS:GO.
+- Sends a notification when a Valve developer starts playing CS:GO.
 - Displays the current map or their game status.
 - Shows more info such as gamemode, game version, mapgroup, app ID, and server info.
-- Randomizes developer names for privacy.
-- You can select the channel where the bot should post notifications.
+- Select the channel where the bot should post notifications.
 - Configure what events should trigger a notification.
+- Start/Stop receiving notifications at any time.
+- Developer names are randomized for privacy.
 
 ## Setup and Installation
 
@@ -54,7 +55,7 @@
 
 4. **Setup config files:**
 
-   - Rename all `<name>.json.example` files in the `configs` folder to `<name>.json`.
+   - Remove the `.example` extension from all the files in the `configs` folder.
    - Add the SteamIDs of the CS developers you want to track in the `csdevs.json` file. The ID's should be in `SteamID64` format.
    - Add other Valve developers' SteamIDs in the `allids.json` file. The ID's should be in `SteamID64` format.
 
@@ -87,9 +88,9 @@ That's it! The bot will now send notifications to the channel you specified when
 
 ## Other Commands
 
-- `/status` - Check if the bot is running.
 - `/stop` - Stop receiving alerts.
 - `/continue` - Continue receiving alerts again.
+- `/status` - Check if the bot is running.
 - `/help` - Show all commands for the bot.
 
 ## License
