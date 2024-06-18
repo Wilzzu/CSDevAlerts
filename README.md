@@ -17,6 +17,8 @@
 - Start/Stop receiving notifications at any time.
 - Developer names are randomized for privacy.
 
+![Screenshots](https://i.imgur.com/iB0mbYn.png)
+
 ## Setup and Installation
 
 ### Prerequisites
@@ -67,8 +69,8 @@
 
 6. **Start the bot:**
 
-> [!WARNING]
-> Before starting to bot, if you want to ensure the randomly generated names remain random and unique, you should modify the values within the hash function (`randomizeId()`). Since this bot is public, using default values may enable others to figure out the original SteamIDs.
+   > [!WARNING]
+   > Before starting the bot, if you want to ensure the randomly generated names remain random and unique, modify the values within the hash function (`randomizeId()`). Since this bot is public, using default values may enable others to figure out the original SteamIDs.
 
    ```
    npm run start
